@@ -1,0 +1,45 @@
+Hyperparameters: Vector Length = 336, Number of Layers = 3, Dropout = 0.12831089625320793, Learning Rate = 0.0003724263259631224, Scheduler Gamma = 0.978770138138513
+
+step 0: train loss 1.1448, val loss 1.0828
+step 500: train loss 0.0577, val loss 0.0579
+step 1000: train loss 0.0552, val loss 0.0591
+step 1500: train loss 0.0449, val loss 0.0508
+step 2000: train loss 0.0389, val loss 0.0477
+step 2500: train loss 0.0338, val loss 0.0427
+step 3000: train loss 0.0331, val loss 0.0402
+step 3500: train loss 0.0245, val loss 0.0375
+step 4000: train loss 0.0218, val loss 0.0342
+step 4500: train loss 0.0192, val loss 0.0325
+step 5000: train loss 0.0164, val loss 0.0294
+step 5500: train loss 0.0172, val loss 0.0300
+step 6000: train loss 0.0137, val loss 0.0264
+step 6500: train loss 0.0147, val loss 0.0273
+step 7000: train loss 0.0115, val loss 0.0245
+step 7500: train loss 0.0105, val loss 0.0250
+step 8000: train loss 0.0104, val loss 0.0239
+step 8500: train loss 0.0097, val loss 0.0252
+step 9000: train loss 0.0095, val loss 0.0237
+step 9500: train loss 0.0085, val loss 0.0236
+step 10000: train loss 0.0080, val loss 0.0227
+step 10500: train loss 0.0080, val loss 0.0237
+step 11000: train loss 0.0072, val loss 0.0230
+step 11500: train loss 0.0070, val loss 0.0225
+step 12000: train loss 0.0065, val loss 0.0217
+step 12500: train loss 0.0061, val loss 0.0233
+step 13000: train loss 0.0061, val loss 0.0229
+step 13500: train loss 0.0057, val loss 0.0218
+step 14000: train loss 0.0057, val loss 0.0238
+step 14500: train loss 0.0050, val loss 0.0219
+step 15000: train loss 0.0048, val loss 0.0215
+step 15500: train loss 0.0047, val loss 0.0216
+step 16000: train loss 0.0045, val loss 0.0226
+step 16500: train loss 0.0043, val loss 0.0214
+step 17000: train loss 0.0042, val loss 0.0215
+step 17500: train loss 0.0040, val loss 0.0221
+step 18000: train loss 0.0040, val loss 0.0223
+step 18500: train loss 0.0037, val loss 0.0222
+step 19000: train loss 0.0042, val loss 0.0221
+step 19500: train loss 0.0038, val loss 0.0230
+step 20000: train loss 0.0034, val loss 0.0235
+
+Metrics = {'MAE': 0.08481628, 'RMSE': 0.11702111, 'R2': 0.42822233526579156, 'Loss': 0.013814652003073954}
