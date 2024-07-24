@@ -1,0 +1,36 @@
+Hyperparameters: Vector Length = 336, Number of Layers = 3, Dropout = 0.12831089625320793, Learning Rate = 0.0003724263259631224, Scheduler Gamma = 0.978770138138513
+
+step 0: train loss 1.3824, val loss 0.4054
+step 500: train loss 0.0704, val loss 0.0102
+step 1000: train loss 0.0658, val loss 0.0120
+step 1500: train loss 0.0575, val loss 0.0171
+step 2000: train loss 0.0492, val loss 0.0115
+step 2500: train loss 0.0463, val loss 0.0069
+step 3000: train loss 0.0324, val loss 0.0063
+step 3500: train loss 0.0295, val loss 0.0075
+step 4000: train loss 0.0256, val loss 0.0100
+step 4500: train loss 0.0213, val loss 0.0094
+step 5000: train loss 0.0180, val loss 0.0128
+step 5500: train loss 0.0167, val loss 0.0106
+step 6000: train loss 0.0148, val loss 0.0130
+step 6500: train loss 0.0154, val loss 0.0162
+step 7000: train loss 0.0127, val loss 0.0171
+step 7500: train loss 0.0129, val loss 0.0177
+step 8000: train loss 0.0114, val loss 0.0189
+step 8500: train loss 0.0135, val loss 0.0201
+step 9000: train loss 0.0095, val loss 0.0199
+step 9500: train loss 0.0093, val loss 0.0191
+step 10000: train loss 0.0095, val loss 0.0213
+step 10500: train loss 0.0082, val loss 0.0189
+step 11000: train loss 0.0085, val loss 0.0234
+step 11500: train loss 0.0074, val loss 0.0222
+step 12000: train loss 0.0073, val loss 0.0191
+step 12500: train loss 0.0071, val loss 0.0187
+step 13000: train loss 0.0062, val loss 0.0196
+step 13500: train loss 0.0062, val loss 0.0204
+step 14000: train loss 0.0058, val loss 0.0198
+step 14500: train loss 0.0059, val loss 0.0203
+step 15000: train loss 0.0065, val loss 0.0194
+step 15500: train loss 0.0051, val loss 0.0195
+
+Metrics = {'MAE': 0.16102654, 'RMSE': 0.19703725, 'R2': -0.6210463335277943, 'Loss': 0.03937349765671089}

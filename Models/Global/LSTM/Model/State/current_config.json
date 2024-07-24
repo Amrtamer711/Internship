@@ -1,0 +1,7 @@
+{
+    "input_length": 38,
+    "hidden_length": 336,
+    "output_length": 14,
+    "num_layers": 3,
+    "dropout": 0.12831089625320793
+}

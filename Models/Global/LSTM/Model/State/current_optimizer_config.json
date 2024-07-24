@@ -1,0 +1,15 @@
+{
+    "lr": 0.0003724263259631224,
+    "betas": [
+        0.9,
+        0.999
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0.01,
+    "amsgrad": false,
+    "foreach": null,
+    "maximize": false,
+    "capturable": false,
+    "differentiable": false,
+    "fused": null
+}

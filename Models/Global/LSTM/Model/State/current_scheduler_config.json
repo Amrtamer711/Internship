@@ -1,0 +1,4 @@
+{
+    "scheduler_type": "ExponentialLR",
+    "gamma": 0.978770138138513
+}
