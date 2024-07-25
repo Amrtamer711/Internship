@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 import os
 import re
+from sklearn.model_selection import train_test_split
 
 class TimeSeriesDataset(Dataset):
     def __init__(self, sequences_df):
@@ -37,7 +38,7 @@ class VisualizationTimeSeriesDataset(Dataset):
 
         return well_name, inputs_dates, targets_dates, torch.tensor(inputs, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32).squeeze()
 
-class UivariateTimeSeriesDataset(Dataset):
+class UnivariateTimeSeriesDataset(Dataset):
     def __init__(self, sequences_df):
         self.sequences_df = sequences_df
 
@@ -60,6 +61,37 @@ class UnivariateVisualizationTimeSeriesDataset(Dataset):
         inputs = self.sequences_df.iloc[idx]['inputs']
         targets = self.sequences_df.iloc[idx]['targets']
         well_name = self.sequences_df.iloc[idx]['well_name']
+        inputs_dates = self.sequences_df.iloc[idx]['inputs_dates']
+        targets_dates = self.sequences_df.iloc[idx]['targets_dates']
+
+        return well_name, inputs_dates, targets_dates, torch.tensor(inputs, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32).squeeze()
+
+class UnivariateTimeSeriesHistoryDataset(Dataset):
+    def __init__(self, sequences_df, original_df):
+        self.sequences_df = sequences_df
+        self.original_df = original_df
+
+    def __len__(self):
+        return len(self.sequences_df)
+
+    def __getitem__(self, idx):
+        well_name = self.sequences_df.iloc[idx]['well_name']
+        inputs = get_oil_history(self.original_df, pd.to_datetime(self.sequences_df.iloc[idx]['targets_dates'][0]), well_name)
+        targets = self.sequences_df.iloc[idx]['targets']
+        return torch.tensor(inputs, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32).squeeze()
+    
+class UnivariateVisualizationTimeSeriesHistoryDataset(Dataset):
+    def __init__(self, sequences_df, original_df):
+        self.sequences_df = sequences_df
+        self.original_df = original_df
+
+    def __len__(self):
+        return len(self.sequences_df)
+
+    def __getitem__(self, idx):
+        well_name = self.sequences_df.iloc[idx]['well_name']
+        inputs = get_oil_history(self.original_df, pd.to_datetime(self.sequences_df.iloc[idx]['targets_dates'][0]), well_name)
+        targets = self.sequences_df.iloc[idx]['targets']
         inputs_dates = self.sequences_df.iloc[idx]['inputs_dates']
         targets_dates = self.sequences_df.iloc[idx]['targets_dates']
 
@@ -312,6 +344,80 @@ def all_predictions_with_gaps_graphs(model, data, data_test, days_window, predic
             pdf.savefig(fig)
             plt.close()
     pdf.close()
+
+def produce_univariate_dataset(data, input_length, output_length, univariate_feature, well_info):
+    sequences = []
+    for well_name in well_info.keys():
+        well_data = data[data['well_name'] == well_name].sort_values(by='date').reset_index()
+        for i in range(len(well_data) - (input_length + output_length) + 1):
+            inputs = well_data.iloc[i:i + input_length][univariate_feature].values
+            targets = well_data.iloc[i + input_length:i + input_length + output_length][univariate_feature].values
+            inputs_dates = list(well_data.iloc[i:i + input_length]['date'])
+            targets_dates = list(well_data.iloc[i + input_length:i + input_length + output_length]['date'])
+            inputs_index = list(well_data.iloc[i:i + input_length]['index'])
+            targets_index = list(well_data.iloc[i + input_length:i + input_length + output_length]['index'])
+            sequences.append((well_name, inputs_dates, targets_dates, inputs_index, targets_index, inputs, targets))
+            if len(well_data.iloc[i:i + input_length + output_length]['well_name'].unique()) > 1:
+                print('violation')
+    dataset = pd.DataFrame(sequences, columns=['well_name', 'inputs_dates', 'targets_dates', 'inputs_index', 'targets_index', 'inputs', 'targets', ])
+    return dataset
+
+def produce_multivariate_dataset(data, input_length, output_length, single_feature_columns, multiple_feature_columns, target_column, well_info):
+    sequences = []
+    for well_name in well_info.keys():
+        well_data = data[data['well_name'] == well_name].sort_values(by='date').reset_index()
+        for i in range(len(well_data) - (input_length + output_length) + 1):
+            single_features = np.array(well_data.iloc[i:i + input_length][single_feature_columns])
+            multiple_features = np.array(well_data.iloc[i:i + input_length][multiple_feature_columns])
+            multiple_flattened = []
+            for k in multiple_features:
+                flattened_list = [item for sublist in k for item in sublist]
+                multiple_flattened.append(flattened_list)
+            multiple_flattened = np.array(multiple_flattened)
+            inputs = np.concatenate((single_features, multiple_flattened), axis=1)
+            targets = well_data.iloc[i + input_length:i + input_length + output_length][target_column].values
+            inputs_dates = list(well_data.iloc[i:i + input_length]['date'])
+            targets_dates = list(well_data.iloc[i + input_length:i + input_length + output_length]['date'])
+            inputs_index = list(well_data.iloc[i:i + input_length]['index'])
+            targets_index = list(well_data.iloc[i + input_length:i + input_length + output_length]['index'])
+            sequences.append((well_name, inputs_dates, targets_dates, inputs_index, targets_index, inputs, targets))
+            if len(well_data.iloc[i:i + input_length + output_length]['well_name'].unique()) > 1:
+                print('violation')
+    dataset = pd.DataFrame(sequences, columns=['well_name', 'inputs_dates', 'targets_dates', 'inputs_index', 'targets_index', 'inputs', 'targets'])
+    return dataset
+
+def split_dataset(dataset, val_size, test_size, well_info, shuffle_train=True):
+    test_size_param1 = test_size
+    test_size_param2 = val_size / (1 - test_size_param1)
+    train_size = 1 - (val_size + test_size)
+    train_wells = []
+    val_wells = []
+    test_wells = []
+    if shuffle_train:
+        for i in well_info.keys():
+            well = dataset[dataset['well_name'] == i]
+            train_set_length = int((train_size + val_size) * len(well))
+            train_wells.append(well[:train_set_length + 1])
+            test_set_length = int(test_size * len(well))
+            test_wells.append(well[-test_set_length:])
+        # Flatten the lists of DataFrames
+        temp_data = pd.concat(train_wells).reset_index(drop=True)
+        data_test = pd.concat(test_wells).reset_index(drop=True)
+        data_train, data_val = train_test_split(temp_data, test_size=test_size_param2, stratify=temp_data['well_name'], shuffle=True)
+    else:
+        for i in well_info.keys():
+            well = dataset[dataset['well_name'] == i]
+            train_set_length = int((train_size) * len(well))
+            train_wells.append(well[:train_set_length + 1])
+            val_set_length = int(val_size * len(well))
+            val_wells.append(well[train_set_length:train_set_length + val_set_length])
+            test_set_length = int(test_size * len(well))
+            test_wells.append(well[-test_set_length:])
+
+    data_train.reset_index(drop=True, inplace=True)
+    data_val.reset_index(drop=True, inplace=True)
+    data_test.reset_index(drop=True, inplace=True)
+    return data_train, data_val, data_test
 
 def produce_graphs(model, visualization_test_loader, data, data_test, days_window, predictions_days, path, well_info, test_size, column_index=None, device="cpu"):
     predictions_with_history_graphs(model, data, visualization_test_loader, predictions_days, path, device=device)

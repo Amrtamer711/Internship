@@ -14,6 +14,7 @@ import json
 import numpy as np
 
 
+
 class Moirai(nn.Module):
     def __init__(self, size, input_length, output_length, num_samples):
         super().__init__()
