@@ -12,6 +12,7 @@ from sklearn.multioutput import MultiOutputRegressor
 import os
 import json
 import numpy as np
+import utils as ut
 
 
 
@@ -202,18 +203,52 @@ class LSTM(nn.Module):
                 raise ValueError("Unsupported scheduler type")
             with open(os.path.join(config_path, f'{name}scheduler_config.json'), 'w') as f:
                 json.dump(scheduler_config, f, indent=4)
-        
-    def load_params(self, path, config_directory, optimizer=None, scheduler=None, name=""):
-        config_path = path + config_directory  
+    
+    @staticmethod
+    def load_params(model_class, config_path, device, optimizer_class=None, scheduler_class=None, name=""):
         if name != "":
             name = f'{name}_'
 
-        self.load_state_dict(torch.load(config_path + f'{name}state_params.pth'))
+        # Load model hyperparameters
+        with open(os.path.join(config_path, f'{name}config.json'), 'r') as f:
+            config = json.load(f)
+        
+        model = LSTM(**config)
+        model.load_state_dict(torch.load(os.path.join(config_path, f'{name}state_params.pth')))
+        
+        optimizer = None
+        if optimizer_class is not None:
+            optimizer = optimizer_class(model.parameters())
+            optimizer.load_state_dict(torch.load(os.path.join(config_path, f'{name}state_optimizer.pth')))
 
-        if optimizer is not None:
-            optimizer.load_state_dict(torch.load(config_path + f'{name}state_optimizer.pth'))
+        scheduler = None
+        if scheduler_class is not None:
+            scheduler = scheduler_class(optimizer)
+            scheduler.load_state_dict(torch.load(os.path.join(config_path, f'{name}state_scheduler.pth')))
+            with open(os.path.join(config_path, f'{name}scheduler_config.json'), 'r') as f:
+                scheduler_config = json.load(f)
+                for param, value in scheduler_config['params'].items():
+                    setattr(scheduler, param, value)
+        
+        return model, optimizer, scheduler
     
-        if scheduler is not None:
+    @staticmethod
+    def load_params(config_path, include_optimizer=None, include_scheduler=None, name=""):
+        if name != "":
+            name = f'{name}_'
+        
+
+        model = models.LSTM(input_length=input_length, hidden_length=vector_length, output_length=output_length, num_layers=num_layers, dropout=dropout).to(device)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma) # setting optimizer scheduler
+        model.load_state_dict(torch.load(config_path + f'{name}state_params.pth'))
+
+        optimizer = None
+        if include_optimizer is not None:
+            optimizer.load_state_dict(torch.load(config_path + f'{name}state_optimizer.pth'))
+        
+        scheduler = None
+        if include_scheduler is not None:
             scheduler.load_state_dict(torch.load(os.path.join(config_path, f'{name}state_scheduler.pth')))
             with open(os.path.join(config_path, f'{name}scheduler_config.json'), 'r') as f:
                 scheduler_config = json.load(f)
@@ -224,4 +259,49 @@ class LSTM(nn.Module):
                     scheduler.gamma = scheduler_config['gamma']
                 else:
                     raise ValueError("Unsupported scheduler type")
+    
+    @staticmethod
+    def load_model(model_path, include_optimizer=None, include_scheduler=None, name=""):
+        if name != "":
+            name = f'{name}_'
+        models = []
+        print(os.path.join(model_path, f'{name}complete_params.pth'))
+        model = torch.load(os.path.join(model_path, f'{name}complete_params.pth'))
+        optimizer = None
+        if include_optimizer is not None:
+            optimizer = torch.load(os.path.join(model_path, f'{name}complete_optimizer.pth'))
+            models.append(optimizer)
+        scheduler = None
+        if include_scheduler is not None:
+            scheduler = torch.load(os.path.join(model_path, f'{name}complete_scheduler.pth'))
+        return model, optimizer, scheduler
+
+    @staticmethod
+    def label_model_files(config_path, model_path, old_name="", new_name=""):
+        if old_name != "":
+            old_name = f'{old_name}_'
+        if new_name != "":
+            new_name = f'{new_name}_'
+        if os.path.exists(config_path + f'{new_name}state_params.pth'):
+            try:
+                user_choice = int(input("File with new name already exists. Enter 1 if you want to overwrite the files. Otherwise press 2: "))
+            except ValueError:
+                print("Invalid input. Please enter 1 or 2.")
+                return
+            if user_choice == 1:
+                try:
+                    ut.rename(config_path, model_path, old_name, new_name)
+                    print("Files have been renamed successfully.")
+                except FileNotFoundError:
+                    print("One or more files not found.")
+            elif user_choice == 2:
+                print("Operation cancelled by the user.")
+            else:
+                print("Invalid choice. Operation cancelled.")
+        else:
+            try:
+                ut.rename(config_path, model_path, old_name, new_name)
+                print("Files have been renamed successfully.")
+            except FileNotFoundError:
+                print("One or more files not found.")
 

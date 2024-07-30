@@ -432,31 +432,5 @@ def rename(config_path, model_path, old_name, new_name):
     os.rename(model_path + f'{old_name}complete_params.pth', model_path + f'{new_name}complete_params.pth')
     os.rename(model_path + f'{old_name}complete_optimizer.pth', model_path + f'{new_name}complete_optimizer.pth')
     os.rename(model_path + f'{old_name}complete_scheduler.pth', model_path + f'{new_name}complete_scheduler.pth')
-    
-def label_model_files(config_path, model_path, old_name="", new_name=""):
-    if old_name != "":
-        old_name = f'{old_name}_'
-    if new_name != "":
-        new_name = f'{new_name}_'
-    if os.path.exists(config_path + f'{new_name}state_params.pth'):
-        try:
-            user_choice = int(input("File with new name already exists. Enter 1 if you want to overwrite the files. Otherwise press 2: "))
-        except ValueError:
-            print("Invalid input. Please enter 1 or 2.")
-            return
-        if user_choice == 1:
-            try:
-                rename(config_path, model_path, old_name, new_name)
-                print("Files have been renamed successfully.")
-            except FileNotFoundError:
-                print("One or more files not found.")
-        elif user_choice == 2:
-            print("Operation cancelled by the user.")
-        else:
-            print("Invalid choice. Operation cancelled.")
-    else:
-        try:
-            rename(config_path, model_path, old_name, new_name)
-            print("Files have been renamed successfully.")
-        except FileNotFoundError:
-            print("One or more files not found.")
+
+
